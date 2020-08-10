@@ -215,9 +215,7 @@ class TraderMenu extends UIScriptedMenu
 				return true;
 				break;
 			case m_XComboboxCategorys:
-				if(!canTrade()) return true;
-				GetGame().RPCSingleParam(m_Player, TRPCs.RPC_SELLALL, new Param3<int, int, string>( m_TraderUID, m_ItemIDs.Get(row_index), getItemDisplayName(m_ListboxItemsClassnames.Get(row_index))), true);
-				return true;
+				UpdateCat();
 				break;
 		}
 		return false;
@@ -286,6 +284,19 @@ class TraderMenu extends UIScriptedMenu
 		*/
 
 		//return false;
+	}
+	void UpdateCat()
+	{
+		if (updateListbox)
+		{
+			updateListbox = false;
+				
+			updateItemListboxContent();
+			m_ListboxItems.SelectRow(0);
+
+			updatePlayerCurrencyAmount();
+			updateItemListboxColors();
+		}
 	}
 	bool canTrade()
 	{
