@@ -58,7 +58,7 @@ modded class MissionServer
 	override void OnInit()
 	{		
 		super.OnInit();
-			//Fixed Script Warning for Unsafe PlayerBase Cast!
+
 		TraderMessage.ServerLog("[TRADER] DEBUG START");
 		SpawnTraderObjects();
 		readTraderData();

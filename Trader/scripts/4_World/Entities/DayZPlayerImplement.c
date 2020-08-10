@@ -100,6 +100,7 @@ modded class DayZPlayerImplement
 		
 		GetGame().RPCSingleParam(player, TRPCs.RPC_TRADER_MOD_IS_LOADED_CONFIRM, new Param1<PlayerBase>( player ), true, player.GetIdentity());
 	}
+
 	void handleBuyRPC(PlayerIdentity sender, int rpc_type, ParamsReadContext ctx)
 	{
 		Param3<int, int, string> rpb = new Param3<int, int, string>( -1, -1, "" );

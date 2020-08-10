@@ -71,6 +71,7 @@ class ActionTrade: ActionInteractBase
 			player.MessageStatus("[Trader] MISSING TRADER DATA FROM SERVER!");				
 			return;
 		}
+
 		// only call these after we made sure the client has all trader data loaded!
 		int traderUID = getNearbyTraderUID(playerPosition);
 		bool canOpenTraderMenu = getCanOpenTraderMenu(playerPosition, traderUID);
@@ -88,6 +89,7 @@ class ActionTrade: ActionInteractBase
 		
 		if (traderUID == -1 && playerIsInSafezoneRange)
 		{
+			//TraderMessage.PlayerWhite("#tm_no_trader_nearby", player, 5);
 			return false;
 		}
 

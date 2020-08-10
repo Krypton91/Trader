@@ -33,6 +33,7 @@ class TraderMessage
             player.showTraderMessage(message, time);
         }
     }
+
     //static void PlayerRed(string message, PlayerBase player = NULL)
     static void PlayerRed(string message, PlayerBase player, float time = 20)
     {

@@ -57,6 +57,7 @@ modded class MissionGameplay
 	{
 		super.OnKeyRelease(key);
 		
+
 		if ( key == KeyCode.KC_ESCAPE )
 		{	
 			PlayerBase player = GetGame().GetPlayer();
