@@ -11,6 +11,7 @@ FrameWidgetClass TraderMenu
 	hexactsize 1
 	vexactsize 1
 	style EditorPanel
+	
 	{
         PanelWidgetClass Background
         {
