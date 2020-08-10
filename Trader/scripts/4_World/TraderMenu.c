@@ -327,7 +327,6 @@ class TraderMenu extends UIScriptedMenu
 					m_ItemPreviewWidget = ItemPreviewWidget.Cast( GetGame().GetWorkspace().CreateWidget(ItemPreviewWidgetTypeID, 0, 0, 1, 1, WidgetFlags.VISIBLE, ARGB(255, 255, 255, 255), 10, preview_frame) );
 				}
 			}
-
 			if ( previewItem )
 				GetGame().ObjectDelete( previewItem );
 

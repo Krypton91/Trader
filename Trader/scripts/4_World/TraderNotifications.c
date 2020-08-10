@@ -109,7 +109,6 @@ class TraderNotifications
 
         UpdateMessagePositions();   
     }
-
     void ShowSafezoneMessage(float time)
     {
         DeleteAllSafezoneMessages();
