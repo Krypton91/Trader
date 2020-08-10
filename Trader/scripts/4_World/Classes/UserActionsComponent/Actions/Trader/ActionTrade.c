@@ -89,7 +89,6 @@ class ActionTrade: ActionInteractBase
 		
 		if (traderUID == -1 && playerIsInSafezoneRange)
 		{
-			//TraderMessage.PlayerWhite("#tm_no_trader_nearby", player, 5);
 			return false;
 		}
 
