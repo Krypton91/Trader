@@ -466,7 +466,6 @@ class TraderMenu extends UIScriptedMenu
 			itemPlayerClassname = item.GetType();
 			itemPlayerClassname.ToLower();
 
-			//TraderMessage.PlayerWhite("I: " + itemPlayerClassname + " == " + itemClassname);
 
 			if(itemPlayerClassname == itemClassname && ((getItemAmount(item) >= amount && !isMagazine && !isWeapon && !isSteak) || isMagazine || isWeapon || (isSteak && (getItemAmount(item) >= GetItemMaxQuantity(itemPlayerClassname) * 0.5))))
 			{
