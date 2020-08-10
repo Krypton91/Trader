@@ -3,7 +3,11 @@ class TraderMenu extends UIScriptedMenu
     MultilineTextWidget m_InfoBox;
     ButtonWidget m_BtnBuy;
 	ButtonWidget m_BtnSell;
+	//Added Sell All Function
+	ButtonWidget m_BtnSellAll;
+	ButtonWidget m_BtnSearch;
 	ButtonWidget m_BtnCancel;
+	EditBoxWidget m_searchBox;
 	TextListboxWidget m_ListboxItems;
 	TextWidget m_Saldo;
 	TextWidget m_SaldoValue;
@@ -72,7 +76,10 @@ class TraderMenu extends UIScriptedMenu
 
         m_BtnBuy = ButtonWidget.Cast( layoutRoot.FindAnyWidget( "btn_buy" ) );
 		m_BtnSell = ButtonWidget.Cast( layoutRoot.FindAnyWidget( "btn_sell" ) );
+		m_BtnSellAll = ButtonWidget.Cast( layoutRoot.FindAnyWidget("btn_sellAll") );
+		m_BtnSearch = ButtonWidget.Cast(layoutRoot.FindAnyWidget("btn_search"));
 		m_BtnCancel = ButtonWidget.Cast( layoutRoot.FindAnyWidget( "btn_cancel" ) );
+		m_searchBox = EditBoxWidget.Cast( layoutRoot.FindAnyWidget("texbox_search") );
 		m_ListboxItems = TextListboxWidget.Cast(layoutRoot.FindAnyWidget("txtlist_items") );
 		m_Saldo = TextWidget.Cast(layoutRoot.FindAnyWidget("text_saldo") );
 		m_SaldoValue = TextWidget.Cast(layoutRoot.FindAnyWidget("text_saldoValue") );
@@ -182,7 +189,39 @@ class TraderMenu extends UIScriptedMenu
 		local int row_index = m_ListboxItems.GetSelectedRow();
 		string itemType = m_ListboxItemsClassnames.Get(row_index);
 		int itemQuantity = m_ListboxItemsQuantity.Get(row_index);
-		
+		switch(w)
+		{
+			case m_BtnBuy:
+				if(!canTrade()) return true;
+				GetGame().RPCSingleParam(m_Player, TRPCs.RPC_BUY, new Param3<int, int, string>( m_TraderUID, m_ItemIDs.Get(row_index), getItemDisplayName(m_ListboxItemsClassnames.Get(row_index))), true);
+				return true;
+				break;
+			case m_BtnSell:
+				if(!canTrade()) return true;
+				GetGame().RPCSingleParam(m_Player, TRPCs.RPC_SELL, new Param3<int, int, string>( m_TraderUID, m_ItemIDs.Get(row_index), getItemDisplayName(m_ListboxItemsClassnames.Get(row_index))), true);
+				break;
+			case m_BtnSellAll:
+				if(!canTrade()) return true;
+				GetGame().RPCSingleParam(m_Player, TRPCs.RPC_SELLALL, new Param3<int, int, string>( m_TraderUID, m_ItemIDs.Get(row_index), getItemDisplayName(m_ListboxItemsClassnames.Get(row_index))), true);
+				return true;
+				break;
+			case m_BtnCancel:
+				if(!canTrade()) return true;
+				GetGame().GetUIManager().Back();
+				return true;
+				break;
+			case m_BtnSearch:
+				TraderMessage.PlayerWhite("Item what you search: " + m_searchBox.GetText(), m_Player);
+				return true;
+				break;
+			case m_XComboboxCategorys:
+				if(!canTrade()) return true;
+				GetGame().RPCSingleParam(m_Player, TRPCs.RPC_SELLALL, new Param3<int, int, string>( m_TraderUID, m_ItemIDs.Get(row_index), getItemDisplayName(m_ListboxItemsClassnames.Get(row_index))), true);
+				return true;
+				break;
+		}
+		return false;
+		/*
 		if ( w == m_BtnBuy )
 		{
 			if (m_UiBuyTimer > 0)
@@ -210,7 +249,20 @@ class TraderMenu extends UIScriptedMenu
 			
 			return true;
 		}
-		
+		//Sell All Trigger
+		if (w == m_BtnSellAll)
+		{
+			if (m_UiSellTimer > 0)
+			{
+				TraderMessage.PlayerWhite("#tm_not_that_fast", m_Player);
+				return true;
+			}
+			m_UiSellTimer = m_buySellTime;
+
+			GetGame().RPCSingleParam(m_Player, TRPCs.RPC_SELLALL, new Param3<int, int, string>( m_TraderUID, m_ItemIDs.Get(row_index), getItemDisplayName(m_ListboxItemsClassnames.Get(row_index))), true);
+			
+			return true;
+		}
 		if ( w == m_BtnCancel )
 		{
 			GetGame().GetUIManager().Back();
@@ -231,10 +283,22 @@ class TraderMenu extends UIScriptedMenu
 				updateItemListboxColors();
 			}
 		}
+		*/
 
-		return false;
+		//return false;
 	}
-	
+	bool canTrade()
+	{
+		PlayerBase m_Player = g_Game.GetPlayer();
+		if (m_UiBuyTimer > 0)
+		{
+			TraderMessage.PlayerWhite("#tm_not_that_fast", m_Player);
+			return false;
+		}
+		m_UiBuyTimer = m_buySellTime;
+		return true;
+	}
+
 	override bool OnChange( Widget w, int x, int y, bool finished )
 	{
 		super.OnChange(w, x, y, finished);
@@ -656,153 +720,7 @@ class TraderMenu extends UIScriptedMenu
 			if (attachmentClassname == cfg_magazines[i])
 				return true;
 		}
-
-
-		// Check non-Ammo Attachments (TODO with "Cfg ... randomAttachments")
-		/*
-		string attachmentInventorySlot = GetItemInventorySlot(attachmentClassname);
-		if (attachmentInventorySlot == string.Empty || attachmentInventorySlot == "weaponOptics")
-			return false;
-
-		array<string> attachments_slots = GetItemAttachmentSlots(parentEntity.GetType());
-
-		for (i = 0; i < attachments_slots.Count(); i++)
-		{
-			if (attachments_slots.Get(i) == attachmentInventorySlot)
-				return true;
-		}*/
-
-
 		return false;
-
-
-		/*string attachmentInventorySlot;
-		g_Game.ConfigGetText(CFG_VEHICLESPATH + " " + attachmentClassname + " inventorySlot", attachmentInventorySlot);
-		TraderMessage.PlayerWhite("ITEM: " + attachmentInventorySlot);*/
-
-
-		/*TStringArray searching_in = new TStringArray;
-		searching_in.Insert( CFG_VEHICLESPATH );
-		searching_in.Insert( CFG_WEAPONSPATH );
-		searching_in.Insert( CFG_MAGAZINESPATH );
-
-		array<string> attachments_slots	= new array<string>;
-
-		for ( int s = 0; s < searching_in.Count(); ++s )
-		{
-			string cfg_name = searching_in.Get( s );
-			string path = cfg_name + " " + parentEntity.GetType();
-
-			if ( GetGame().ConfigIsExisting( path ) )
-			{
-				g_Game.ConfigGetTextArray( path + " attachments", attachments_slots );
-				if ( parentEntity.IsWeapon() )
-				{
-					attachments_slots.Insert( "magazine" );
-				}
-			}
-		}
-		if ( parentEntity.IsWeapon() )
-		{
-			attachments_slots.Insert( "magazine" );
-		}
-
-		for (int i = 0; i < attachments_slots.Count(); i++)
-		{
-			string slot_name = attachments_slots.Get ( i );
-
-			string namePath = "CfgSlots" + " Slot_" + slot_name;
-			GetGame().ConfigGetText( namePath + " name", slot_name );
-
-			TraderMessage.PlayerWhite("HANDS: " + slot_name);
-
-			if (slot_name == attachmentInventorySlot)
-				return true;
-
-			
-			//int cfg_count = GetGame().ConfigGetChildrenCount(namePath);
-			//TraderMessage.PlayerWhite("WOW: " + cfg_count);
-			//for (int j = 0; j < cfg_count; j++)
-			//{
-			//	string childName;
-			//	GetGame().ConfigGetChildName(namePath, j, childName);
-			//	TraderMessage.PlayerWhite("WOWW: " + childName);
-			//}
-		}
-
-		return false;*/
-
-
-		// Check with Ghostentity
-		/*EntityAI entity = g_Game.GetPlayer().SpawnEntityOnGroundPos(attachmentClassname, vector.Zero); 
-		TraderMessage.PlayerWhite("DEBUG: Placed " + entity.GetDisplayName());
-
-		if ( parentEntity.GetInventory() && parentEntity.GetInventory().CanAddAttachment( entity ) )
-		{
-			entity.Delete();
-			return true;
-		}
-
-		entity.Delete();
-		return false;*/
-
-
-		/*
-		//string			type_name = entity.GetType();
-		string			type_name = parentEntity.GetType();
-		TStringArray	cfg_attachments = new TStringArray;
-		
-		string cfg_path;
-		
-		if ( GetGame().ConfigIsExisting(CFG_VEHICLESPATH+" "+type_name) )
-		{
-			cfg_path = CFG_VEHICLESPATH+" "+type_name+" attachments";
-		}
-		else if ( GetGame().ConfigIsExisting(CFG_WEAPONSPATH+" "+type_name) )
-		{
-			cfg_path = CFG_WEAPONSPATH+" "+type_name+" attachments";
-		}
-		else if ( GetGame().ConfigIsExisting(CFG_MAGAZINESPATH+" "+type_name) )
-		{
-			cfg_path = CFG_MAGAZINESPATH+" "+type_name+" attachments";
-		}
-		
-		GetGame().ConfigGetTextArray(cfg_path, cfg_attachments);
-
-		//GetGame().ConfigGetTextArray("cfgVehicles " + type_name + " itemInfo", cfg_attachments);
-		GetGame().ConfigGetTextArray(cfg_path, cfg_attachments);
-
-		for (int i = 0; i < cfg_attachments.Count(); i++)
-		{
-			TraderMessage.PlayerWhite(cfg_attachments[i]);
-
-			if (attachmentClassname == cfg_attachments[i].GetType)
-			return true;
-		}
-
-		return false;*/
-
-		/*string tesstr;
-		TStringArray cfg_attachments = new TStringArray;
-		string type_name = parentEntity.GetType();
-		string path = CFG_WEAPONSPATH + " " + type_name + " chamberableFrom";
-		//int cfg_count = GetGame().ConfigGetChildrenCount(path);
-
-		
-		GetGame().ConfigGetTextArray(path, cfg_attachments);
-		//tesstr = GetGame().ConfigGetTextOut(path);
-		//cfg_attachments.Insert(tesstr);
-
-		TraderMessage.PlayerWhite("(" + cfg_attachments.Count() + ") CFGs: " + path + ":");
-		Print("(" + cfg_attachments.Count() + ") CFGs: " + path + ":");
-
-		for (int i = 0; i < cfg_attachments.Count(); i++)
-		{
-			TraderMessage.PlayerWhite("x   " + cfg_attachments[i]);
-			Print("x   " + cfg_attachments[i]);
-		}
-
-		return false;*/
 	}
 
 	/*string GetItemInventorySlot(string itemClassname)

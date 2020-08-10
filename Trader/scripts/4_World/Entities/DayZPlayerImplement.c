@@ -87,6 +87,9 @@ modded class DayZPlayerImplement
 
 		if (rpc_type == TRPCs.RPC_SELL)
 			handleSellRPC(sender, rpc_type, ctx);
+
+		if (rpc_type == TRPCs.RPC_SELLALL)
+			handleSellAllRPC(sender, rpc_type, ctx);
 	}
 
 	void handleTraderModIsLoadedRPC(PlayerIdentity sender, int rpc_type, ParamsReadContext ctx)
@@ -232,6 +235,8 @@ modded class DayZPlayerImplement
 			*/
 			if(this.GetInventory().CanAddEntityToInventory( item ))
 			{
+				//Delete The Item what we spawn for check
+				GetGame().ObjectDelete(item);
 				TraderMessage.PlayerWhite(itemDisplayNameClient + "\n" + "#tm_added_to_inventory", this)
 
 				if(isDuplicatingKey)
@@ -255,7 +260,7 @@ modded class DayZPlayerImplement
 		traderServerLog("bought " + getItemDisplayName(itemType) + "(" + itemType + ")");
 		//deductPlayerCurrency(itemCosts);
 	}
-
+	
 	void handleSellRPC(PlayerIdentity sender, int rpc_type, ParamsReadContext ctx)
 	{
 		Param3<int, int, string> rps = new Param3<int, int, string>( -1, -1, "" );
@@ -317,6 +322,73 @@ modded class DayZPlayerImplement
 			removeFromPlayerInventory(itemType, itemQuantity);
 		
 		increasePlayerCurrency(itemSellValue);
+	}
+	/**
+	@Function Sell ALL by Krypton91 
+	Info: This Function is to handle the Sell All RPC from client.
+	params: sender, rpc_type, ParamsReadContext
+	**/
+	void handleSellAllRPC(PlayerIdentity sender, int rpc_type, ParamsReadContext ctx)
+	{
+		Param3<int, int, string> rps = new Param3<int, int, string>( -1, -1, "" );
+		ctx.Read(rps);
+		int m_TraderUID = rps.param1;
+		int m_ItemID = rps.param2;
+		itemDisplayNameClient = rps.param3;
+
+		m_Trader_IsSelling = true;
+		if (GetGame().GetTime() - m_Trader_LastSelledTime < m_Trader_BuySellTimer * 1000)
+			return;
+
+		m_Trader_LastSelledTime = GetGame().GetTime();
+		
+		if(m_TraderUID < 0 || m_ItemID < 0 || m_TraderUID >= m_Trader_TraderPositions.Count() || m_ItemID >= m_Trader_ItemsClassnames.Count())
+			return;
+		
+		string ItemType  = m_Trader_ItemsClassnames.Get(m_ItemID);
+		int ItemsQuantity = m_Trader_ItemsQuantity.Get(m_ItemID);
+		int ItemsSellValue = m_Trader_ItemsSellValue.Get(m_ItemID);
+		vector playerPosition = this.GetPosition();	
+
+		if (vector.Distance(playerPosition, m_Trader_TraderPositions.Get(m_TraderUID)) > 1.7)
+		{
+			traderServerLog("tried to access the Trader out of Range! This could be an Hacker!");
+			return;
+		}
+
+		if(ItemsSellValue < 0)
+		{
+			TraderMessage.PlayerWhite("#tm_cant_be_sold", this);
+			return;
+		}
+		if (!isInPlayerInventory(ItemType, ItemsQuantity))
+		{
+			TraderMessage.PlayerWhite("#tm_you_cant_sell", this);
+			return;
+		}
+		int selledItems = 0;
+		selledItems = RemoveAllItems(ItemType);
+		traderServerLog("#tm_sold" + " " + getItemDisplayName(ItemType) + " (" + ItemType + ")");
+		increasePlayerCurrency(ItemsSellValue * selledItems);
+		TraderMessage.PlayerWhite("" + selledItems + "x "+ itemDisplayNameClient + "\n" + "#tm_was_sold", this);
+	}
+	//Remove All Items for Sell All
+	int RemoveAllItems(string itemType) 
+	{
+		int itemsToRemove = 0;
+		array<EntityAI> items = new array<EntityAI>();
+		GetInventory().EnumerateInventory(InventoryTraversalType.PREORDER,items);
+		for (int i = 0; i < items.Count(); i++) 
+		{
+			EntityAI m_item = items[i];
+			Ammunition_Base ambs;
+			if (!m_item || m_item.GetType() != itemType || !Class.CastTo(ambs, m_item))
+				continue;
+			int quant = (int) ambs.GetAmmoCount();
+			GetGame().ObjectDelete(ambs);
+			itemsToRemove += quant;
+		}
+		return itemsToRemove;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// CLIENT RPC HANDLING
@@ -1095,7 +1167,6 @@ modded class DayZPlayerImplement
 			}
 		}
 
-
 		array<EntityAI> itemsArray = new array<EntityAI>;
 		this.GetInventory().EnumerateInventory(InventoryTraversalType.PREORDER, itemsArray);
 		
@@ -1193,7 +1264,6 @@ modded class DayZPlayerImplement
 		
 		return currencyAmount;
 	}
-
 	void increasePlayerCurrency(int currencyAmount)
 	{
 		if (currencyAmount == 0)
