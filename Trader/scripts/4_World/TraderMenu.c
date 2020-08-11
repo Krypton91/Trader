@@ -1,3 +1,11 @@
+class TraderItem
+{
+    string ClassName;
+	int BuyValue;
+	int SellValue;
+	int Quantity;
+	int IndexId;
+};
 class TraderMenu extends UIScriptedMenu
 {
     MultilineTextWidget m_InfoBox;
@@ -7,7 +15,6 @@ class TraderMenu extends UIScriptedMenu
 	ButtonWidget m_BtnSellAll;
 	ButtonWidget m_BtnSearch;
 	ButtonWidget m_BtnCancel;
-	EditBoxWidget m_searchBox;
 	TextListboxWidget m_ListboxItems;
 	TextWidget m_Saldo;
 	TextWidget m_SaldoValue;
@@ -52,6 +59,14 @@ class TraderMenu extends UIScriptedMenu
 	
 	ref TStringArray m_FileContent;
 
+	//SearchFunction
+	private string              m_SearchFilter = "";
+    private string              m_OldSearchFilter = "";
+	private EditBoxWidget		m_SearchBox; 
+	ref array<ref TraderItem> m_FilteredListOfTraderItems;
+	ref array<ref TraderItem> m_ListOfCategoryTraderItems;
+	ref array<ref TraderItem> m_ListOfTraderItems;
+
 	void TraderMenu()
 	{		
 		m_Player_CurrencyAmount = 0;
@@ -79,7 +94,7 @@ class TraderMenu extends UIScriptedMenu
 		m_BtnSellAll = ButtonWidget.Cast( layoutRoot.FindAnyWidget("btn_sellAll") );
 		m_BtnSearch = ButtonWidget.Cast(layoutRoot.FindAnyWidget("btn_search"));
 		m_BtnCancel = ButtonWidget.Cast( layoutRoot.FindAnyWidget( "btn_cancel" ) );
-		m_searchBox = EditBoxWidget.Cast( layoutRoot.FindAnyWidget("texbox_search") );
+		m_SearchBox    = EditBoxWidget.Cast( layoutRoot.FindAnyWidget( "SearchBox" ) );
 		m_ListboxItems = TextListboxWidget.Cast(layoutRoot.FindAnyWidget("txtlist_items") );
 		m_Saldo = TextWidget.Cast(layoutRoot.FindAnyWidget("text_saldo") );
 		m_SaldoValue = TextWidget.Cast(layoutRoot.FindAnyWidget("text_saldoValue") );
@@ -98,6 +113,11 @@ class TraderMenu extends UIScriptedMenu
 		m_ListboxItemsBuyValue = new array<int>;
 		m_ListboxItemsSellValue = new array<int>;
 		m_ItemIDs = new array<int>;
+
+
+        m_FilteredListOfTraderItems = new ref array<ref TraderItem>;
+        m_ListOfCategoryTraderItems = new ref array<ref TraderItem>;
+        m_ListOfTraderItems = new ref array<ref TraderItem>;
 		
 		LoadFileValues();
 		m_CategorysCurrentIndex = 0;
@@ -124,6 +144,10 @@ class TraderMenu extends UIScriptedMenu
 		
 		if (m_UiUpdateTimer >= 0.05)
 		{
+			m_SearchFilter = m_SearchBox.GetText();
+			if(m_SearchFilter != m_OldSearchFilter)
+				SearchForItems();
+			
 			updatePlayerCurrencyAmount();				
 			updateItemListboxColors();
 
@@ -132,12 +156,18 @@ class TraderMenu extends UIScriptedMenu
 			{
 				m_LastRowIndex = row_index;
 				m_LastCategoryCurrentIndex = m_CategorysCurrentIndex;
-
-				string itemType = m_ListboxItemsClassnames.Get(row_index);
+				ResetMenu();
+				if(!m_FilteredListOfTraderItems.Get(row_index))
+				{
+					m_UiUpdateTimer = 0;
+					return;
+				}
+				string itemType = m_FilteredListOfTraderItems.Get(row_index).ClassName;
 				updateItemPreview(itemType);
 			}
 
-			PlayerBase player = g_Game.GetPlayer();
+			//PlayerBase player = g_Game.GetPlayer();
+			PlayerBase player = PlayerBase.Cast(GetGame().GetPlayer());
 			float playerDistanceToTrader = vector.Distance(player.GetPosition(), player.m_Trader_TraderPositions.Get(m_TraderUID));
 			if (playerDistanceToTrader > 1.7)
 				GetGame().GetUIManager().Back();
@@ -162,6 +192,10 @@ class TraderMenu extends UIScriptedMenu
 		GetGame().GetInput().ChangeGameFocus(1);
 
 		SetFocus( layoutRoot );
+
+		GetGame().GetMission().PlayerControlDisable(INPUT_EXCLUDE_ALL);
+
+        GetGame().GetUIManager().ShowUICursor( true );
 	}
 
 	override void OnHide()
@@ -176,6 +210,9 @@ class TraderMenu extends UIScriptedMenu
 		{
 			GetGame().ObjectDelete( previewItem );
 		}
+		GetGame().GetMission().PlayerControlEnable(false);
+
+        GetGame().GetUIManager().ShowUICursor( false );
 
 		Close();
 	}
@@ -184,16 +221,26 @@ class TraderMenu extends UIScriptedMenu
 	{
 		super.OnClick(w, x, y, button);
 
-		PlayerBase m_Player = g_Game.GetPlayer();
+		//PlayerBase m_Player = g_Game.GetPlayer();
+		PlayerBase m_Player = PlayerBase.Cast(GetGame().GetPlayer());
 		
 		local int row_index = m_ListboxItems.GetSelectedRow();
+
+		if(!m_FilteredListOfTraderItems.Get(row_index))
+			return false;
+
 		string itemType = m_ListboxItemsClassnames.Get(row_index);
 		int itemQuantity = m_ListboxItemsQuantity.Get(row_index);
 		switch(w)
 		{
 			case m_BtnBuy:
+				if(!previewItem)
+				{
+					TraderMessage.PlayerWhite("Item dosent exist!", m_Player);
+					return true;
+				}
 				if(!canTrade()) return true;
-				GetGame().RPCSingleParam(m_Player, TRPCs.RPC_BUY, new Param3<int, int, string>( m_TraderUID, m_ItemIDs.Get(row_index), getItemDisplayName(m_ListboxItemsClassnames.Get(row_index))), true);
+				GetGame().RPCSingleParam(m_Player, TRPCs.RPC_BUY, new Param3<int, int, string>( m_TraderUID, m_FilteredListOfTraderItems.Get(row_index).IndexId, getItemDisplayName(m_FilteredListOfTraderItems.Get(row_index).ClassName)), true);
 				return true;
 				break;
 			case m_BtnSell:
@@ -208,10 +255,6 @@ class TraderMenu extends UIScriptedMenu
 			case m_BtnCancel:
 				if(!canTrade()) return true;
 				GetGame().GetUIManager().Back();
-				return true;
-				break;
-			case m_BtnSearch:
-				TraderMessage.PlayerWhite("Item what you search: " + m_searchBox.GetText(), m_Player);
 				return true;
 				break;
 			case m_XComboboxCategorys:
@@ -298,6 +341,101 @@ class TraderMenu extends UIScriptedMenu
 			updateItemListboxColors();
 		}
 	}
+	void ResetMenu()
+	{
+		previewItem.Delete();
+		m_ItemWeight.SetText("");
+		m_ItemDescription.SetText("");
+	}
+	/*
+	void HandleItemSearch()
+    { 
+		m_ListboxItems.ClearItems();
+		m_FilteredListOfTraderItems.Clear();
+        string displayName = "";
+
+		int filercount = 0;
+       
+		if(m_searchFilter == string.Empty)
+		{
+			return;
+		}
+		foreach(ItemBuilder builder : m_ListOfTraderItems)
+		{                
+			displayName = getItemDisplayName(builder.classname);
+			string low_DisplayName = displayName;
+			low_DisplayName.ToLower();
+			string low_m_SearchFilter = m_searchFilter;
+			low_m_SearchFilter.ToLower();
+			if(low_DisplayName.Contains(low_m_SearchFilter))
+			{
+				m_FilteredListOfTraderItems.Insert(builder);
+				m_ListboxItems.AddItem( displayName, NULL, 0 );	
+				m_ListboxItems.SetItem( filercount, "" + builder.BuyValue, NULL, 1 );
+				m_ListboxItems.SetItem( filercount, "" + builder.SellValue, NULL, 2 );
+				filercount++;
+			}
+		}
+
+        m_searchFilerold = m_searchFilter;
+
+		//Fix for Empty count
+        if(m_FilteredListOfTraderItems.Count() > 0)
+        {
+            m_LastRowIndex = -1;
+            m_ListboxItems.SelectRow(0);
+        }
+	}
+	*/
+	void SearchForItems()
+    { 
+		m_ListboxItems.ClearItems();
+		m_FilteredListOfTraderItems.Clear();
+        string displayName = "";
+		int countFilter = 0;
+       
+		if(m_SearchFilter && m_SearchFilter != string.Empty)
+		{
+			countFilter = 0;
+			foreach(TraderItem traderItem : m_ListOfTraderItems)
+			{                
+				displayName = getItemDisplayName(traderItem.ClassName);
+				string low_DisplayName = displayName;
+				low_DisplayName.ToLower();
+				string low_m_SearchFilter = m_SearchFilter;
+				low_m_SearchFilter.ToLower();
+				if(low_DisplayName.Contains(low_m_SearchFilter))
+				{
+					m_FilteredListOfTraderItems.Insert(traderItem);
+					m_ListboxItems.AddItem( displayName, NULL, 0 );	
+					m_ListboxItems.SetItem( countFilter, "" + traderItem.BuyValue, NULL, 1 );
+					m_ListboxItems.SetItem( countFilter, "" + traderItem.SellValue, NULL, 2 );
+					countFilter++;
+				}
+			}
+		}
+		else
+		{
+			countFilter = 0;
+			foreach(TraderItem catTraderItem : m_ListOfCategoryTraderItems)
+			{ 
+				displayName = getItemDisplayName(catTraderItem.ClassName);    
+				m_FilteredListOfTraderItems.Insert(catTraderItem);
+				m_ListboxItems.AddItem( displayName, NULL, 0 );	
+				m_ListboxItems.SetItem( countFilter, "" + catTraderItem.BuyValue, NULL, 1 );
+				m_ListboxItems.SetItem( countFilter, "" + catTraderItem.SellValue, NULL, 2 );
+				countFilter++;
+			}
+		}
+
+        m_OldSearchFilter = m_SearchFilter;
+        if(m_FilteredListOfTraderItems.Count() > 0)
+        {
+            m_LastRowIndex = -1;
+            m_ListboxItems.SelectRow(0);
+        }
+        
+	}
 	bool canTrade()
 	{
 		PlayerBase m_Player = g_Game.GetPlayer();
@@ -326,6 +464,7 @@ class TraderMenu extends UIScriptedMenu
 		//------------------------------------------------------
 		
 		LoadItemsFromFile();
+		//SearchForItems();
 		
 		//------------------------------------------------------
 		
@@ -939,16 +1078,32 @@ class TraderMenu extends UIScriptedMenu
 	
 	bool LoadItemsFromFile()
 	{
-		PlayerBase m_Player = g_Game.GetPlayer();
-		
+		//PlayerBase m_Player = g_Game.GetPlayer();
+		PlayerBase m_Player = PlayerBase.Cast(GetGame().GetPlayer());
+
 		m_ListboxItemsClassnames = new array<string>;
 		m_ListboxItemsQuantity = new array<int>;
 		m_ListboxItemsBuyValue = new array<int>;
 		m_ListboxItemsSellValue = new array<int>;
 		m_ItemIDs = new array<int>;
+
+		//For SearchFunction
+		m_ListOfTraderItems.Clear();
+		m_ListOfCategoryTraderItems.Clear();
+		m_FilteredListOfTraderItems.Clear();
 			
 		for ( int i = 0; i < m_Player.m_Trader_ItemsClassnames.Count(); i++ )
-		{			
+		{
+			if(m_Player.m_Trader_ItemsTraderId.Get(i) != m_TraderID)
+				continue;
+			
+			TraderItem item = new TraderItem;
+			item.ClassName = m_Player.m_Trader_ItemsClassnames.Get(i);
+			item.Quantity = m_Player.m_Trader_ItemsQuantity.Get(i);
+			item.BuyValue = m_Player.m_Trader_ItemsBuyValue.Get(i);
+			item.SellValue = m_Player.m_Trader_ItemsSellValue.Get(i);
+			item.IndexId = i;
+			m_ListOfTraderItems.Insert(item);
 			if ( m_Player.m_Trader_ItemsCategoryId.Get(i) == m_CategorysKey.Get(m_CategorysCurrentIndex) )
 			{
 				m_ListboxItemsClassnames.Insert(m_Player.m_Trader_ItemsClassnames.Get(i));
@@ -956,6 +1111,8 @@ class TraderMenu extends UIScriptedMenu
 				m_ListboxItemsBuyValue.Insert(m_Player.m_Trader_ItemsBuyValue.Get(i));
 				m_ListboxItemsSellValue.Insert(m_Player.m_Trader_ItemsSellValue.Get(i));
 				m_ItemIDs.Insert(i);
+				m_ListOfCategoryTraderItems.Insert(item);
+				m_FilteredListOfTraderItems.Insert(item);
 			}
 		}
 		

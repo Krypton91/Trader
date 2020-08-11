@@ -1,7 +1,7 @@
 FrameWidgetClass TraderMenu {
  visible 0
  color 0 0 0 0
- position 0.00175 -0.00288
+ position 0.00225 0.00318
  size 1350.20996 990
  halign center_ref
  valign center_ref
@@ -9,6 +9,7 @@ FrameWidgetClass TraderMenu {
  vexactpos 0
  hexactsize 1
  vexactsize 1
+ scaled 1
  {
   PanelWidgetClass Background {
    visible 1
@@ -20,6 +21,18 @@ FrameWidgetClass TraderMenu {
    hexactsize 0
    vexactsize 1
    style rover_sim_colorable
+   {
+    TextWidgetClass DeutscheBohrmaschineTrader0 {
+     ignorepointer 1
+     position 58.0484 835.28204
+     size 114.906 41.7055
+     hexactpos 1
+     vexactpos 1
+     hexactsize 1
+     vexactsize 1
+     text "search:"
+    }
+   }
   }
   PanelWidgetClass title_wrapper {
    visible 1
@@ -48,7 +61,7 @@ FrameWidgetClass TraderMenu {
      {
       TextWidgetClass DeutscheBohrmaschineTrader {
        ignorepointer 1
-       position 889.32404 5.2177
+       position 651.23407 13.3358
        size 451.52698 41.8627
        hexactpos 1
        vexactpos 1
@@ -117,8 +130,9 @@ FrameWidgetClass TraderMenu {
    font "gui/fonts/Metron22"
   }
   TextWidgetClass ItemWeight {
+   visible 1
    position 58.0687 631.06299
-   size 835 40
+   size 832 40
    halign left_ref
    valign top_ref
    hexactpos 1
@@ -150,8 +164,8 @@ FrameWidgetClass TraderMenu {
   ItemPreviewWidgetClass ItemFrameWidget {
    visible 1
    color 0 0 0 0.8
-   position 948.06897 556.74597
-   size 379.785 269.31699
+   position 921.22504 555.68298
+   size 409.81799 269.31699
    halign left_ref
    valign top_ref
    hexactpos 1
@@ -161,19 +175,20 @@ FrameWidgetClass TraderMenu {
    scaled 1
   }
   ButtonWidgetClass btn_cancel {
-   position 7.45241 114.138
-   size 160 40
+   color 1 0 0 1
+   position 1297.90002 943.729
+   size 47.5731 40
    halign left_ref
    valign bottom_ref
    hexactpos 1
    vexactpos 1
    hexactsize 1
    vexactsize 1
-   text "#tm_cancel"
+   text "X"
   }
   ButtonWidgetClass btn_buy {
-   position 412.76102 113.283
-   size 160 40
+   position 573.12299 113.70399
+   size 160.15701 39.5284
    halign right_ref
    valign bottom_ref
    hexactpos 1
@@ -183,7 +198,7 @@ FrameWidgetClass TraderMenu {
    text "#tm_buy"
   }
   ButtonWidgetClass btn_sell {
-   position 245.952 113.572
+   position 243.00301 113.799
    size 160 40
    halign right_ref
    valign bottom_ref
@@ -194,8 +209,8 @@ FrameWidgetClass TraderMenu {
    text "#tm_sell"
   }
   ButtonWidgetClass btn_sellAll {
-   position 4.20801 113.535
-   size 233.86 40
+   position 17.5705 113.535
+   size 220.49799 40
    halign right_ref
    valign bottom_ref
    hexactpos 1
@@ -204,25 +219,25 @@ FrameWidgetClass TraderMenu {
    vexactsize 1
    text "#tm_sellAll"
   }
-  ButtonWidgetClass btn_search {
-   position 633.539 113.144
-   size 165.46399 40
+  EditBoxWidgetClass SearchBox {
+   position 178.785 837.43005
+   size 370.069 40.995
+   hexactpos 1
+   vexactpos 1
+   hexactsize 1
+   vexactsize 1
+   style Default
+  }
+  ButtonWidgetClass btn_buyAll {
+   position 407.785 114.131
+   size 160.62901 39.214
    halign right_ref
    valign bottom_ref
    hexactpos 1
    vexactpos 1
    hexactsize 1
    vexactsize 1
-   text "#tm_search"
-  }
-  EditBoxWidgetClass texbox_search {
-   position 173.60201 835.70001
-   size 370.069 40.5044
-   hexactpos 1
-   vexactpos 1
-   hexactsize 1
-   vexactsize 1
-   style DefaultBorder
+   text "#tm_buyAll"
   }
  }
 }
