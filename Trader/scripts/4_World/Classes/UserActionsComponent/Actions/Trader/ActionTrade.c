@@ -91,7 +91,7 @@ class ActionTrade: ActionInteractBase
 	{		
 		//PlayerBase player = GetGame().GetPlayer();
 		PlayerBase player = PlayerBase.Cast(GetGame().GetPlayer());
-		bool playerIsInSafezoneRange = getIsInSafezoneRange(position)
+		bool playerIsInSafezoneRange = getIsInSafezoneRange(position);
 		
 		if (traderUID == -1 && playerIsInSafezoneRange)
 		{

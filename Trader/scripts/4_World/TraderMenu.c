@@ -13,7 +13,7 @@ class TraderMenu extends UIScriptedMenu
 	ButtonWidget m_BtnSell;
 	//Added Sell All Function
 	ButtonWidget m_BtnSellAll;
-	ButtonWidget m_BtnSearch;
+	ButtonWidget m_BtnBuyAll;
 	ButtonWidget m_BtnCancel;
 	TextListboxWidget m_ListboxItems;
 	TextWidget m_Saldo;
@@ -76,7 +76,8 @@ class TraderMenu extends UIScriptedMenu
 	
 	void ~TraderMenu()
 	{
-		PlayerBase player = g_Game.GetPlayer();
+		//PlayerBase player = g_Game.GetPlayer();
+		PlayerBase player = PlayerBase.Cast(GetGame().GetPlayer());
 		player.GetInputController().SetDisabled(false);
 
 		if ( previewItem ) 
@@ -92,7 +93,7 @@ class TraderMenu extends UIScriptedMenu
         m_BtnBuy = ButtonWidget.Cast( layoutRoot.FindAnyWidget( "btn_buy" ) );
 		m_BtnSell = ButtonWidget.Cast( layoutRoot.FindAnyWidget( "btn_sell" ) );
 		m_BtnSellAll = ButtonWidget.Cast( layoutRoot.FindAnyWidget("btn_sellAll") );
-		m_BtnSearch = ButtonWidget.Cast(layoutRoot.FindAnyWidget("btn_search"));
+		m_BtnBuyAll = ButtonWidget.Cast(layoutRoot.FindAnyWidget("btn_buyAll"));
 		m_BtnCancel = ButtonWidget.Cast( layoutRoot.FindAnyWidget( "btn_cancel" ) );
 		m_SearchBox    = EditBoxWidget.Cast( layoutRoot.FindAnyWidget( "SearchBox" ) );
 		m_ListboxItems = TextListboxWidget.Cast(layoutRoot.FindAnyWidget("txtlist_items") );
@@ -257,9 +258,18 @@ class TraderMenu extends UIScriptedMenu
 				return true;
 				break;
 			case m_BtnCancel:
-				if(!canTrade()) return true;
 				GetGame().GetUIManager().Back();
 				return true;
+				break;
+			case m_BtnBuyAll:
+				//BuyAllMenu().FillIn(m_TraderUID, m_ItemIDs.Get(row_index), getItemDisplayName(m_ListboxItemsClassnames.Get(row_index)));
+				TraderUUID = m_TraderUID;
+				ItemID = m_ItemIDs.Get(row_index);
+				ItemName = getItemDisplayName(m_ListboxItemsClassnames.Get(row_index));
+				GetGame().GetUIManager().Back();
+				initializeBuyAllMenu();
+				GetGame().GetUIManager().ShowScriptedMenu( m_Player.m_BuyAllMenu, NULL );
+				TraderMessage.PlayerWhite("Try to open Menu...", m_Player);
 				break;
 			case m_XComboboxCategorys:
 				UpdateCat();
@@ -331,6 +341,14 @@ class TraderMenu extends UIScriptedMenu
 		*/
 
 		//return false;
+	}
+	void initializeBuyAllMenu()
+	{
+		//PlayerBase player = GetGame().GetPlayer();
+		PlayerBase player = PlayerBase.Cast(GetGame().GetPlayer());
+
+		player.m_BuyAllMenu = new BuyAllMenu;
+		player.m_BuyAllMenu.Init();
 	}
 	void UpdateCat()
 	{
@@ -442,7 +460,8 @@ class TraderMenu extends UIScriptedMenu
 	}
 	bool canTrade()
 	{
-		PlayerBase m_Player = g_Game.GetPlayer();
+		//PlayerBase m_Player = g_Game.GetPlayer();
+		PlayerBase m_Player = PlayerBase.Cast(GetGame().GetPlayer());
 		if (m_UiBuyTimer > 0)
 		{
 			TraderMessage.PlayerWhite("#tm_not_that_fast", m_Player);
@@ -549,7 +568,7 @@ class TraderMenu extends UIScriptedMenu
 			if ( previewItem )
 				GetGame().ObjectDelete( previewItem );
 
-			previewItem = GetGame().CreateObject( itemType, "0 0 0", true, false, true );
+			previewItem =  EntityAI.Cast(GetGame().CreateObject( itemType, "0 0 0", true, false, true ));
 
 			m_ItemPreviewWidget.SetItem( previewItem );
 			m_ItemPreviewWidget.SetModelPosition( Vector(0,0,0.5) );
@@ -607,7 +626,8 @@ class TraderMenu extends UIScriptedMenu
 	
 	void updatePlayerCurrencyAmount()
 	{
-		PlayerBase m_Player = g_Game.GetPlayer();
+		//PlayerBase m_Player = g_Game.GetPlayer();
+		PlayerBase m_Player = PlayerBase.Cast(GetGame().GetPlayer());
 
 		m_Player_CurrencyAmount = 0;
 		m_Player_CurrencyAmount = getPlayerCurrencyAmount();
@@ -616,7 +636,8 @@ class TraderMenu extends UIScriptedMenu
 	
 	int getPlayerCurrencyAmount() // duplicate
 	{
-		PlayerBase m_Player = g_Game.GetPlayer();
+		//PlayerBase m_Player = g_Game.GetPlayer();
+		PlayerBase m_Player = PlayerBase.Cast(GetGame().GetPlayer());
 		
 		int currencyAmount = 0;
 		
@@ -646,7 +667,8 @@ class TraderMenu extends UIScriptedMenu
 	
 	bool isInPlayerInventory(string itemClassname, int amount) // duplicate
 	{
-		PlayerBase m_Player = g_Game.GetPlayer();
+		//PlayerBase m_Player = g_Game.GetPlayer();
+		PlayerBase m_Player = PlayerBase.Cast(GetGame().GetPlayer());
 		itemClassname.ToLower();
 		
 		bool isMagazine = false;
@@ -841,7 +863,8 @@ class TraderMenu extends UIScriptedMenu
 		if (!parent)
 			return false;
 
-		PlayerBase m_Player = g_Game.GetPlayer();
+		//PlayerBase m_Player = g_Game.GetPlayer();
+		PlayerBase m_Player = PlayerBase.Cast(GetGame().GetPlayer());
 
 		if (parent.IsWeapon() || parent.IsMagazine())
 			return true;
@@ -1056,7 +1079,8 @@ class TraderMenu extends UIScriptedMenu
 	
 	bool LoadFileValues()
 	{
-		PlayerBase m_Player = g_Game.GetPlayer();
+		//PlayerBase m_Player = g_Game.GetPlayer();
+		PlayerBase m_Player = PlayerBase.Cast(GetGame().GetPlayer());
 		
 		m_TraderName.SetText(m_Player.m_Trader_TraderNames.Get(m_TraderID));
 		m_Saldo.SetText(m_Player.m_Trader_CurrencyName + ": ");

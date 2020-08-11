@@ -49,7 +49,7 @@ modded class MissionGameplay
 		
 		if (!GetGame().IsServer() && !player.m_Trader_TraderModIsLoadedHandled)
 		{
-			GetGame().RPCSingleParam(GetGame().GetPlayer(), TRPCs.RPC_TRADER_MOD_IS_LOADED, new Param1<PlayerBase>( GetGame().GetPlayer() ), true);
+			GetGame().RPCSingleParam(player, TRPCs.RPC_TRADER_MOD_IS_LOADED, new Param1<PlayerBase>( player ), true);
 		}
 	}
 	
@@ -60,7 +60,8 @@ modded class MissionGameplay
 
 		if ( key == KeyCode.KC_ESCAPE )
 		{	
-			PlayerBase player = GetGame().GetPlayer();
+			//PlayerBase player = GetGame().GetPlayer();
+			PlayerBase player = PlayerBase.Cast(GetGame().GetPlayer());
 			if (player.m_TraderMenu)
 				player.m_TraderMenu.m_active = false;
 		}

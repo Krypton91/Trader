@@ -2,6 +2,7 @@ modded class PlayerBase
 {
     bool m_Trader_IsTrader = false;
     ref TraderMenu m_TraderMenu;
+    ref BuyAllMenu m_BuyAllMenu;
 
     override void Init()
     {

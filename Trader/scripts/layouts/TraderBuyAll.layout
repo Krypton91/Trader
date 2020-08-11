@@ -46,7 +46,8 @@ FrameWidgetClass BuyAllMenu {
    vexactsize 1
    style rover_sim_colorable
   }
-  ButtonWidgetClass btn_cancel {
+  ButtonWidgetClass btn_closeBuyAll {
+   visible 1
    color 1 0 0 1
    position 1297.90002 943.729
    size 47.5731 40

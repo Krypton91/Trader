@@ -3,6 +3,7 @@ enum TRPCs
 	// Client -> Server
 	RPC_TRADER_MOD_IS_LOADED = 35466,
 	RPC_BUY,
+	RPC_BUYALL,
 	RPC_SELL,
 	RPC_SELLALL,
 	
