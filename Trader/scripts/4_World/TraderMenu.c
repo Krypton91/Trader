@@ -254,7 +254,7 @@ class TraderMenu extends UIScriptedMenu
 				{
 					TraderMessage.PlayerWhite("#tm_cant_use_sellall", m_Player);
 				}
-				GetGame().RPCSingleParam(m_Player, TRPCs.RPC_SELLALL, new Param3<int, int, string>( m_TraderUID, m_ItemIDs.Get(row_index), getItemDisplayName(m_ListboxItemsClassnames.Get(row_index))), true);
+				GetGame().RPCSingleParam(m_Player, TRPCs.RPC_SELLALL, new Param3<int, int, string>( m_TraderUID, m_FilteredListOfTraderItems.Get(row_index).IndexId, getItemDisplayName(m_FilteredListOfTraderItems.Get(row_index).ClassName)), true);
 				return true;
 				break;
 			case m_BtnCancel:
@@ -264,12 +264,11 @@ class TraderMenu extends UIScriptedMenu
 			case m_BtnBuyAll:
 				//BuyAllMenu().FillIn(m_TraderUID, m_ItemIDs.Get(row_index), getItemDisplayName(m_ListboxItemsClassnames.Get(row_index)));
 				TraderUUID = m_TraderUID;
-				ItemID = m_ItemIDs.Get(row_index);
-				ItemName = getItemDisplayName(m_ListboxItemsClassnames.Get(row_index));
+				ItemID = m_FilteredListOfTraderItems.Get(row_index).IndexId;
+				ItemName = getItemDisplayName(m_FilteredListOfTraderItems.Get(row_index).ClassName);
 				GetGame().GetUIManager().Back();
 				initializeBuyAllMenu();
 				GetGame().GetUIManager().ShowScriptedMenu( m_Player.m_BuyAllMenu, NULL );
-				TraderMessage.PlayerWhite("Try to open Menu...", m_Player);
 				break;
 			case m_XComboboxCategorys:
 				UpdateCat();

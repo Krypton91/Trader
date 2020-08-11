@@ -337,28 +337,11 @@ modded class DayZPlayerImplement
 		}
 		//Here We home
 		else // Is not a Vehicle
-		{		
-			deductPlayerCurrency(itemCosts);
-			//Test
+		{	int SpawnedItems = 0;
 			EntityAI item = EntityAI.Cast(GetGame().CreateObject(itemType, "0 0 0"));
-			/*if(!this.GetInventory().CanAddEntityToInventory( item ))
-			{
-				TraderMessage.PlayerWhite("Your Inv is Full!!\nBetter funktion by Krypton91", this);
-			}
-			Pured because dont work on all itemBases.
-			if (canCreateItemInPlayerInventory(itemType, itemQuantity))
-			{
-				TraderMessage.PlayerWhite("" + itemDisplayNameClient + "\n" + "#tm_added_to_inventory", this);
-				
-				if (isDuplicatingKey)
-					createVehicleKeyInPlayerInventory(vehicleKeyHash, itemType);
-				else
-					createItemInPlayerInventory(itemType, itemQuantity);
-			}
-			*/
 			if(player.GetInventory().CanAddEntityToInventory( item ))
 			{
-				TraderMessage.PlayerWhite(itemDisplayNameClient + m_ItemCount + "x" +  "\n" + "#tm_added_to_inventory", player);
+				//TraderMessage.PlayerWhite(itemDisplayNameClient + m_ItemCount + "x" +  "\n" + "#tm_added_to_inventory", player);
 
 				if(isDuplicatingKey)
 					createVehicleKeyInPlayerInventory(vehicleKeyHash, itemType);
@@ -368,28 +351,55 @@ modded class DayZPlayerImplement
 					Magazine_Base magbs;
 					if(Class.CastTo(ambs, item) || Class.CastTo(magbs, item))
 					{
-						//Todo: Check if we can add this when not give him rest money back
+						//Todo: Check if we can add this when not give him rest money back 
+						//Todo: Try to fix the merge bug from ambs and magbs
+						//Todo: Make a own game. lol
 						//for(int i = 0; i < m_ItemCount; i++)
 						//{
-							createItemInPlayerInventory(itemType, m_ItemCount);
+						//	if(player.GetInventory().CanAddEntityToInventory(item))
+						//	{
+						//		CreateItemInInventory(itemType, m_ItemCount);
+						//	}
+						//	else
+						//	{
+								TraderMessage.PlayerWhite("Sorry but this Function\nCurrently works not for this item!", player);
+						//		SpawnedItems = i;
+						//		break;
+						//	}
 						//}
 					}
 					else
 					{
-						for(int i = 0; i < m_ItemCount; i++)
+						for(int j = 0; j < m_ItemCount; j++)
 						{
-							CreateItemInInventory(itemType, itemQuantity);
+							if(player.GetInventory().CanAddEntityToInventory(item))
+							{
+								CreateItemInInventory(itemType, itemQuantity);
+							}
+							else
+							{
+								TraderMessage.PlayerWhite("cant add that much! you got the rest money back! \nItem what you got: " + j, player);
+								SpawnedItems = j;
+								break;
+							}
 						}
 					}
 				}
 			}
+			deductPlayerCurrency(itemCostsDefault * SpawnedItems);
 			GetGame().ObjectDelete(item);
 		}
 		//Added back in! :)
 		traderServerLog("bought " + m_ItemCount + "x " + getItemDisplayName(itemType) + "(" + itemType + ")");
 		//deductPlayerCurrency(itemCosts);
 	}
-	
+	//int calculateLoop(ItemBase item, int itemstoadd)
+	//{
+	//	int maxStackValue = item.GetQuantityMax().ToInt();
+		
+	//	int m_sum = itemstoadd / maxStackValue;
+	//	return;
+	//}
 	void handleSellRPC(PlayerIdentity sender, int rpc_type, ParamsReadContext ctx)
 	{
 		Param3<int, int, string> rps = new Param3<int, int, string>( -1, -1, "" );
