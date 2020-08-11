@@ -235,14 +235,25 @@ modded class DayZPlayerImplement
 			*/
 			if(this.GetInventory().CanAddEntityToInventory( item ))
 			{
-				//Delete The Item what we spawn for check
-				GetGame().ObjectDelete(item);
 				TraderMessage.PlayerWhite(itemDisplayNameClient + "\n" + "#tm_added_to_inventory", this)
 
 				if(isDuplicatingKey)
 					createVehicleKeyInPlayerInventory(vehicleKeyHash, itemType);
 				else
-					createItemInPlayerInventory(itemType, itemQuantity);
+				{
+					Ammunition_Base ambs;
+					Magazine_Base magbs;
+					if(Class.CastTo(ambs, item) || Class.CastTo(magbs, item))
+					{
+						createItemInPlayerInventory(itemType, itemQuantity);
+					}
+					else
+					{
+						CreateItemInInventory(itemType, itemQuantity);
+					}
+				}
+				//Delete The Item what we spawn for check
+				GetGame().ObjectDelete(item);
 			}
 			else
 			{
@@ -1013,7 +1024,6 @@ modded class DayZPlayerImplement
 
 	void createItemInPlayerInventory(string itemType, int amount)
 	{
-		Print("::::::::::::TRADER DEBUG START Function: createItemInPlayerInventory ::::::::::::");
 		EntityAI entity;
 
 		array<ItemBase> mergeableItems = getMergeableItemFromPlayerInventory(itemType, amount);
@@ -1103,7 +1113,66 @@ modded class DayZPlayerImplement
 
 		this.UpdateInventoryMenu(); // RPC-Call needed?
 	}
+	void CreateItemInInventory(string itemType, int amount)
+	{
+		array<EntityAI> itemsArray = new array<EntityAI>;
+		this.GetInventory().EnumerateInventory(InventoryTraversalType.PREORDER, itemsArray);
+		string itemLower = itemType;
+		itemLower.ToLower();
 
+		int currentAmount = amount;
+		ItemBase item;
+		ItemBase newItem;
+		bool isNewItem = amount <= 0;
+
+		if(!isNewItem)
+		{
+			for (int i = 0; i < itemsArray.Count(); i++)
+			{
+				if(currentAmount <= 0)
+					break;
+				Class.CastTo(item, itemsArray.Get(i));
+				string itemPlayerClassname = "";
+
+				if(!item)
+					continue;
+				if(item.IsRuined())
+					continue;
+				
+				itemPlayerClassname = item.GetType();
+				itemPlayerClassname.ToLower();
+				if(itemLower == itemPlayerClassname && !item.IsFullQuantity())
+				{
+					currentAmount = item.AddQuantityTR(currentAmount);
+				}
+			}
+		}
+		if(currentAmount > 0 || isNewItem)
+		{
+			if(newItem)
+			{
+				newItem.Delete();
+			}
+			newItem = ItemBase.Cast(this.GetInventory().CreateInInventory(itemType));
+			if(!newItem)
+			{
+				for (int j = 0; j < itemsArray.Count(); j++)
+				{
+					Class.CastTo(item, itemsArray.Get(j));
+
+					if(!item)
+						continue;
+
+					newItem = ItemBase.Cast(item.GetInventory().CreateInInventory(itemType));
+					if(newItem)
+						break;
+				}
+			}
+			if(!isNewItem)
+			newItem.SetQuantity(currentAmount);
+		}
+		this.UpdateInventoryMenu(); //RPC-Call needed?
+	}
 	void spawnItemOnGround(string itemType, int amount, vector position)
 	{		
 		EntityAI entity = this.SpawnEntityOnGroundPos(itemType, position);
@@ -1282,7 +1351,7 @@ modded class DayZPlayerImplement
 				{
 					if (canCreateItemInPlayerInventory(m_Trader_CurrencyClassnames.Get(i), itemMaxAmount))
 					{
-						createItemInPlayerInventory(m_Trader_CurrencyClassnames.Get(i), itemMaxAmount);
+						CreateItemInInventory(m_Trader_CurrencyClassnames.Get(i), itemMaxAmount);
 					}
 					else
 					{
@@ -1301,7 +1370,7 @@ modded class DayZPlayerImplement
 				{		
 					if (canCreateItemInPlayerInventory(m_Trader_CurrencyClassnames.Get(i), currencyAmount / m_Trader_CurrencyValues.Get(i)))
 					{
-						createItemInPlayerInventory(m_Trader_CurrencyClassnames.Get(i), currencyAmount / m_Trader_CurrencyValues.Get(i));
+						CreateItemInInventory(m_Trader_CurrencyClassnames.Get(i), currencyAmount / m_Trader_CurrencyValues.Get(i));
 					}
 					else
 					{		
