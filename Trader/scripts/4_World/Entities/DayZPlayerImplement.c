@@ -164,6 +164,7 @@ modded class DayZPlayerImplement
 			isDuplicatingKey = true;
 			vehicleKeyHash = vehicleKeyinHands.GetHash();
 			itemType = vehicleKeyinHands.GetType();
+			//Unoetig???
 			if(itemType == "")
 			{
 				TraderMessage.PlayerWhite("ERROR Item was null!", this);
@@ -252,8 +253,6 @@ modded class DayZPlayerImplement
 						CreateItemInInventory(itemType, itemQuantity);
 					}
 				}
-				//Delete The Item what we spawn for check
-				GetGame().ObjectDelete(item);
 			}
 			else
 			{
@@ -266,6 +265,8 @@ modded class DayZPlayerImplement
 				
 				GetGame().RPCSingleParam(this, TRPCs.RPC_SEND_MENU_BACK, new Param1<bool>( false ), true, this.GetIdentity());
 			}
+			//Delete The Item what we spawn for check
+			GetGame().ObjectDelete(item);
 		}
 		//Added back in! :)
 		traderServerLog("bought " + getItemDisplayName(itemType) + "(" + itemType + ")");

@@ -245,10 +245,14 @@ class TraderMenu extends UIScriptedMenu
 				break;
 			case m_BtnSell:
 				if(!canTrade()) return true;
-				GetGame().RPCSingleParam(m_Player, TRPCs.RPC_SELL, new Param3<int, int, string>( m_TraderUID, m_ItemIDs.Get(row_index), getItemDisplayName(m_ListboxItemsClassnames.Get(row_index))), true);
+				GetGame().RPCSingleParam(m_Player, TRPCs.RPC_SELL, new Param3<int, int, string>( m_TraderUID, m_FilteredListOfTraderItems.Get(row_index).IndexId, getItemDisplayName(m_FilteredListOfTraderItems.Get(row_index).ClassName)), true);
 				break;
 			case m_BtnSellAll:
 				if(!canTrade()) return true;
+				if(!previewItem.IsInherited(Ammunition_Base))
+				{
+					TraderMessage.PlayerWhite("#tm_cant_use_sellall", m_Player);
+				}
 				GetGame().RPCSingleParam(m_Player, TRPCs.RPC_SELLALL, new Param3<int, int, string>( m_TraderUID, m_ItemIDs.Get(row_index), getItemDisplayName(m_ListboxItemsClassnames.Get(row_index))), true);
 				return true;
 				break;
